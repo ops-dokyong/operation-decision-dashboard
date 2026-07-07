@@ -29,36 +29,44 @@ const STAGES = {
     label: "집중 관리",
     en: "Intervention",
     order: 0,
-    badge: "bg-red-50 text-red-700 border border-red-100",
-    dot: "bg-red-500",
-    solid: "bg-red-600",
+    bg: "#FBEEEE",
+    text: "#9B3A34",
+    border: "#F0D6D4",
+    dot: "#B5504A",
+    solid: "#B5504A",
   },
   priority: {
     key: "priority",
     label: "우선 연락",
     en: "Priority Contact",
     order: 1,
-    badge: "bg-orange-50 text-orange-700 border border-orange-100",
-    dot: "bg-orange-500",
-    solid: "bg-orange-600",
+    bg: "#FBF1EA",
+    text: "#8A4A26",
+    border: "#EFDBC7",
+    dot: "#B4652F",
+    solid: "#B4652F",
   },
   warning: {
     key: "warning",
     label: "주의",
     en: "Warning",
     order: 2,
-    badge: "bg-amber-50 text-amber-700 border border-amber-100",
-    dot: "bg-amber-500",
-    solid: "bg-amber-500",
+    bg: "#FBF3E1",
+    text: "#8A6A1F",
+    border: "#EEDFBB",
+    dot: "#C1932E",
+    solid: "#C1932E",
   },
   observation: {
     key: "observation",
     label: "관찰",
     en: "Observation",
     order: 3,
-    badge: "bg-gray-100 text-gray-600 border border-gray-200",
-    dot: "bg-gray-400",
-    solid: "bg-gray-400",
+    bg: "#F3F3F1",
+    text: "#5B5B57",
+    border: "#E3E3E0",
+    dot: "#9C9C96",
+    solid: "#9C9C96",
   },
 };
 
@@ -341,8 +349,8 @@ const SORTED_ALL = [...STUDENTS].sort(
 /* ------------------------------------------------------------------ */
 
 function Sparkline({ data }) {
-  const w = 60;
-  const h = 24;
+  const w = 84;
+  const h = 26;
   const min = Math.min(...data);
   const max = Math.max(...data);
   const range = max - min || 1;
@@ -355,10 +363,10 @@ function Sparkline({ data }) {
   const trend = data[data.length - 1] - data[0];
   const tone =
     trend < 0
-      ? { stroke: "#DC2626", fill: "#FEE2E2", dot: "#DC2626" }
+      ? { stroke: "#B5504A", fill: "#FBEEEE", dot: "#B5504A" }
       : trend > 0
-      ? { stroke: "#059669", fill: "#D1FAE5", dot: "#059669" }
-      : { stroke: "#9CA3AF", fill: "#F3F4F6", dot: "#9CA3AF" };
+      ? { stroke: "#3B7D52", fill: "#E9F4EC", dot: "#3B7D52" }
+      : { stroke: "#9C9C96", fill: "#F3F3F1", dot: "#9C9C96" };
   const [firstX] = coords[0];
   const [lastX, lastY] = coords[coords.length - 1];
   const areaPoints = `${firstX},${h - 2} ${points} ${lastX},${h - 2}`;
@@ -370,11 +378,11 @@ function Sparkline({ data }) {
         points={points}
         fill="none"
         stroke={tone.stroke}
-        strokeWidth="1.6"
+        strokeWidth="1.8"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <circle cx={lastX} cy={lastY} r="2.1" fill={tone.dot} stroke="white" strokeWidth="1" />
+      <circle cx={lastX} cy={lastY} r="2.2" fill={tone.dot} stroke="white" strokeWidth="1" />
     </svg>
   );
 }
@@ -383,8 +391,11 @@ function StageBadge({ stage, size = "sm" }) {
   const s = STAGES[stage];
   const pad = size === "sm" ? "pl-1.5 pr-2.5 py-0.5" : "pl-2 pr-3 py-1";
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full text-xs font-semibold ${pad} ${s.badge}`}>
-      <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${s.dot}`} />
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full border text-xs font-semibold ${pad}`}
+      style={{ backgroundColor: s.bg, color: s.text, borderColor: s.border }}
+    >
+      <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: s.dot }} />
       {s.label}
     </span>
   );
@@ -449,10 +460,10 @@ function Header() {
             <button
               key={item.key}
               onClick={() => setActive(item.key)}
-              className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors duration-150 ${
+              className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs transition-colors duration-150 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-300 ${
                 isActive
-                  ? "bg-gray-100 text-gray-900"
-                  : "text-gray-500 hover:bg-gray-50 hover:text-gray-700"
+                  ? "bg-gray-100 font-semibold text-gray-900"
+                  : "font-medium text-gray-500 hover:bg-gray-50 hover:text-gray-700"
               }`}
             >
               <Icon className="h-3.5 w-3.5" />
@@ -491,50 +502,56 @@ function KpiCards({ data }) {
 
   // previous-day snapshot (dummy comparison baseline)
   const prev = { total: 7, intervention: 1, priority: 4, warning: 3, isNew: 1 };
+  const NEUTRAL = { bg: "#F4F4F3", text: "#3F3F3D" };
+  const NEW_RISK = { bg: "#EAF1FB", text: "#2C5A8C" };
 
   const cards = [
-    { key: "total", label: "오늘 관리 대상", value: counts.total, tone: "bg-gray-50 text-gray-900", neutral: true },
-    { key: "intervention", label: "집중 관리", value: counts.intervention, tone: "bg-red-50 text-red-700" },
-    { key: "priority", label: "우선 연락", value: counts.priority, tone: "bg-orange-50 text-orange-700" },
-    { key: "warning", label: "주의", value: counts.warning, tone: "bg-amber-50 text-amber-700" },
-    { key: "isNew", label: "신규 위험군", value: counts.isNew, tone: "bg-blue-50 text-blue-700" },
+    { key: "total", label: "오늘 관리 대상", value: counts.total, tone: NEUTRAL, neutral: true },
+    { key: "intervention", label: "집중 관리", value: counts.intervention, tone: { bg: STAGES.intervention.bg, text: STAGES.intervention.text } },
+    { key: "priority", label: "우선 연락", value: counts.priority, tone: { bg: STAGES.priority.bg, text: STAGES.priority.text } },
+    { key: "warning", label: "주의", value: counts.warning, tone: { bg: STAGES.warning.bg, text: STAGES.warning.text } },
+    { key: "isNew", label: "신규 위험군", value: counts.isNew, tone: NEW_RISK },
   ];
+
+  const DELTA_BAD = { bg: "#FBEEEE", text: "#B5504A" };
+  const DELTA_GOOD = { bg: "#E9F4EC", text: "#3B7D52" };
+  const DELTA_FLAT = { bg: "#F0F0EF", text: "#7A7A76" };
 
   return (
     <div className="grid shrink-0 grid-cols-5 gap-3 border-b border-gray-200 bg-gray-50 p-4">
       {cards.map((c) => {
         const delta = c.value - prev[c.key];
         const isUp = delta > 0;
-        const isDown = delta < 0;
         const badTone = !c.neutral && isUp;
-        const goodTone = !c.neutral && isDown;
-        const deltaColor = c.neutral
-          ? "text-gray-400"
-          : badTone
-          ? "text-red-600"
-          : goodTone
-          ? "text-emerald-600"
-          : "text-gray-400";
+        const goodTone = !c.neutral && delta < 0;
+        const deltaTone = c.neutral || delta === 0 ? DELTA_FLAT : badTone ? DELTA_BAD : goodTone ? DELTA_GOOD : DELTA_FLAT;
+
         return (
           <div
             key={c.label}
-            className={`rounded-xl p-3 transition-shadow duration-150 hover:shadow-sm ${c.tone}`}
+            className="flex h-24 flex-col justify-between rounded-lg p-3 shadow-sm transition-shadow duration-150 ease-out hover:shadow-md"
+            style={{ backgroundColor: c.tone.bg, color: c.tone.text }}
           >
             <p className="text-xs font-medium opacity-80">{c.label}</p>
-            <div className="mt-1 flex items-baseline gap-2">
-              <p className="text-2xl font-semibold tracking-tight">{c.value}</p>
-              <span className={`flex items-center gap-0.5 text-xs font-medium ${deltaColor}`}>
-                {delta === 0 ? (
-                  <Minus className="h-3 w-3" />
-                ) : isUp ? (
-                  <TrendingUp className="h-3 w-3" />
-                ) : (
-                  <TrendingDown className="h-3 w-3" />
-                )}
-                {delta === 0 ? "0" : `${isUp ? "+" : ""}${delta}`}
-              </span>
+            <div className="flex items-end justify-between">
+              <p className="text-3xl font-bold tracking-tight">{c.value}</p>
+              <div className="flex flex-col items-end gap-1">
+                <span
+                  className="flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-xs font-semibold"
+                  style={{ backgroundColor: deltaTone.bg, color: deltaTone.text }}
+                >
+                  {delta === 0 ? (
+                    <Minus className="h-3 w-3" />
+                  ) : isUp ? (
+                    <TrendingUp className="h-3 w-3" />
+                  ) : (
+                    <TrendingDown className="h-3 w-3" />
+                  )}
+                  {delta === 0 ? "0" : `${isUp ? "+" : ""}${delta}`}
+                </span>
+                <span className="text-xs opacity-60">전일 대비</span>
+              </div>
             </div>
-            <p className="mt-0.5 text-xs opacity-60">전일 대비</p>
           </div>
         );
       })}
@@ -625,7 +642,7 @@ function Sidebar({ filters, setFilters }) {
             <button
               key={opt.key}
               onClick={() => setFilters((p) => ({ ...p, counseling: opt.key }))}
-              className={`rounded-md border px-2 py-1 text-xs font-medium transition-all duration-150 active:scale-95 ${
+              className={`rounded-md border px-2 py-1 text-xs font-medium transition-all duration-150 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-300 active:scale-95 ${
                 filters.counseling === opt.key
                   ? "border-slate-900 bg-slate-900 text-white"
                   : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
@@ -658,15 +675,14 @@ function Sidebar({ filters, setFilters }) {
 /* ------------------------------------------------------------------ */
 
 function StudentCard({ student, active, onClick }) {
-  const stage = STAGES[student.stage];
   const declining = student.currentAttendance < student.prevAttendance;
 
   return (
     <button
       onClick={onClick}
-      className={`w-full rounded-lg border p-3 text-left transition-all duration-150 ${
+      className={`w-full rounded-lg border p-3 text-left transition-all duration-150 ease-out ${
         active
-          ? "border-slate-900 bg-white shadow-md ring-1 ring-slate-900"
+          ? "border-slate-900 bg-white ring-1 ring-slate-900"
           : "border-gray-200 bg-white hover:-translate-y-px hover:border-gray-300 hover:shadow-md"
       }`}
     >
@@ -683,34 +699,36 @@ function StudentCard({ student, active, onClick }) {
         )}
       </div>
 
-      <div className="mt-2 flex flex-wrap gap-1.5">
-        {student.evidence.slice(0, 2).map((e) => (
-          <span
-            key={e}
-            className="rounded-md bg-gray-50 px-2 py-0.5 text-xs font-medium text-gray-500"
-          >
-            {e}
-          </span>
-        ))}
-      </div>
-
-      <div className="mt-2.5 flex items-center justify-between gap-3 border-t border-gray-100 pt-2.5">
-        <div className="flex items-center gap-2">
+      <div className="mt-3 space-y-2 border-t border-gray-100 pt-3">
+        <div className="flex items-center justify-between">
           <span className={`text-xs font-semibold tabular-nums ${declining ? "text-red-600" : "text-gray-700"}`}>
-            {student.prevAttendance}%→{student.currentAttendance}%
+            {student.prevAttendance}% → {student.currentAttendance}%
           </span>
           <Sparkline data={student.sparkline} />
         </div>
-        <span className="shrink-0 text-xs text-gray-400">
-          결석 <span className="font-semibold text-gray-700">{student.cumulativeAbsence}일</span>
-        </span>
-        <button
-          onClick={(e) => e.stopPropagation()}
-          className="shrink-0 rounded-md border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs font-medium text-gray-700 transition-all duration-150 hover:border-gray-300 hover:bg-gray-100 hover:shadow-sm active:scale-95"
-        >
-          {student.action}
-        </button>
+        <div className="flex items-center justify-between gap-2">
+          <span className="shrink-0 text-xs text-gray-400">
+            누적 결석 <span className="font-semibold text-gray-700">{student.cumulativeAbsence}일</span>
+          </span>
+          <div className="flex min-w-0 flex-wrap justify-end gap-1">
+            {student.evidence.slice(0, 2).map((e) => (
+              <span
+                key={e}
+                className="truncate rounded-md bg-gray-50 px-1.5 py-0.5 text-xs font-medium text-gray-500"
+              >
+                {e}
+              </span>
+            ))}
+          </div>
+        </div>
       </div>
+
+      <button
+        onClick={(e) => e.stopPropagation()}
+        className="mt-3 w-full rounded-md border border-slate-200 bg-slate-50 py-1.5 text-center text-xs font-medium text-slate-700 transition-all duration-150 ease-out hover:border-slate-300 hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-300 active:scale-[0.98]"
+      >
+        {student.action}
+      </button>
     </button>
   );
 }
@@ -744,14 +762,14 @@ function StudentList({ students, selectedId, onSelect }) {
 
 function Heatmap({ data }) {
   const color = {
-    present: "bg-green-400",
-    late: "bg-amber-400",
-    absent: "bg-red-400",
+    present: "bg-green-300",
+    late: "bg-amber-300",
+    absent: "bg-red-300",
   };
   return (
-    <div className="grid grid-cols-7 gap-1">
+    <div className="grid grid-cols-7 gap-1.5">
       {data.map((status, i) => (
-        <div key={i} className={`aspect-square rounded-sm ${color[status]}`} />
+        <div key={i} className={`aspect-square rounded-md ${color[status]}`} />
       ))}
     </div>
   );
@@ -759,7 +777,7 @@ function Heatmap({ data }) {
 
 function ProgressBar({ value, tone = "bg-slate-700" }) {
   return (
-    <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-100">
+    <div className="h-2 w-full overflow-hidden rounded-full bg-gray-100">
       <div className={`h-full rounded-full ${tone}`} style={{ width: `${value}%` }} />
     </div>
   );
@@ -786,13 +804,14 @@ function DetailPanel({ student }) {
 
   return (
     <aside
-      className="shrink-0 space-y-3 overflow-y-auto border-l border-gray-200 bg-gray-50 p-3.5"
+      className="shrink-0 space-y-3.5 overflow-y-auto border-l border-gray-200 bg-gray-50 p-4"
       style={{ width: "450px" }}
     >
       {/* 1. basic info */}
       <div className="flex items-center gap-2.5">
         <div
-          className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold text-white ${stage.solid}`}
+          className="flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold text-white"
+          style={{ backgroundColor: stage.solid }}
         >
           {student.name.slice(0, 1)}
         </div>
@@ -806,7 +825,7 @@ function DetailPanel({ student }) {
       </div>
 
       {/* 2. AI Evidence */}
-      <div className="rounded-lg border border-slate-200 bg-white p-3 transition-shadow duration-150 hover:shadow-sm">
+      <div className="rounded-lg border border-slate-200 bg-white p-3.5 transition-shadow duration-150 ease-out hover:shadow-sm">
         <div className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-slate-500">
           <Flag className="h-3.5 w-3.5" />
           AI Evidence · 종합 근거
@@ -819,7 +838,7 @@ function DetailPanel({ student }) {
       </div>
 
       {/* 3. AI Summary */}
-      <div className="rounded-lg border border-blue-100 bg-blue-50 p-3">
+      <div className="rounded-lg border border-blue-100 bg-blue-50 p-3.5">
         <div className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-blue-700">
           <Sparkles className="h-3.5 w-3.5" />
           AI Summary
@@ -834,29 +853,29 @@ function DetailPanel({ student }) {
       </div>
 
       {/* 4. Recommended action */}
-      <button className="flex w-full items-center justify-center gap-2 rounded-lg bg-slate-900 py-2 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:bg-slate-800 hover:shadow active:scale-[0.98]">
+      <button className="flex w-full items-center justify-center gap-2 rounded-md bg-slate-900 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-150 ease-out hover:bg-slate-800 hover:shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1 active:scale-[0.98]">
         <Phone className="h-4 w-4" />
         {student.action}
       </button>
 
       {/* 5. Attendance */}
-      <div className="rounded-lg border border-gray-200 bg-white p-3 transition-shadow duration-150 hover:shadow-sm">
+      <div className="rounded-lg border border-gray-200 bg-white p-3.5 transition-shadow duration-150 ease-out hover:shadow-sm">
         <div className="mb-1.5 flex items-center justify-between">
           <SectionLabel>출결 현황</SectionLabel>
           <span className="text-xs text-gray-400">최근 4주</span>
         </div>
         <Heatmap data={student.heatmap} />
-        <div className="mt-2 flex items-center gap-3 text-xs text-gray-400">
-          <span className="flex items-center gap-1">
-            <span className="h-2 w-2 rounded-sm bg-green-400" />
+        <div className="mt-2.5 flex items-center gap-3 text-xs text-gray-400">
+          <span className="flex items-center gap-1.5">
+            <span className="h-2 w-2 rounded-full bg-green-300" />
             출석
           </span>
-          <span className="flex items-center gap-1">
-            <span className="h-2 w-2 rounded-sm bg-amber-400" />
+          <span className="flex items-center gap-1.5">
+            <span className="h-2 w-2 rounded-full bg-amber-300" />
             지각
           </span>
-          <span className="flex items-center gap-1">
-            <span className="h-2 w-2 rounded-sm bg-red-400" />
+          <span className="flex items-center gap-1.5">
+            <span className="h-2 w-2 rounded-full bg-red-300" />
             결석
           </span>
         </div>
@@ -884,13 +903,13 @@ function DetailPanel({ student }) {
       </div>
 
       {/* 6. Learning engagement */}
-      <div className="rounded-lg border border-gray-200 bg-white p-3 transition-shadow duration-150 hover:shadow-sm">
+      <div className="rounded-lg border border-gray-200 bg-white p-3.5 transition-shadow duration-150 ease-out hover:shadow-sm">
         <SectionLabel>학습 참여도</SectionLabel>
         <div className="space-y-2">
           <div>
-            <div className="mb-1 flex items-center justify-between text-xs">
+            <div className="mb-1.5 flex items-center justify-between text-xs">
               <span className="text-gray-500">과제 제출률</span>
-              <span className="font-semibold text-gray-900">{student.assignmentRate}%</span>
+              <span className="text-sm font-bold text-gray-900">{student.assignmentRate}%</span>
             </div>
             <ProgressBar
               value={student.assignmentRate}
@@ -920,7 +939,7 @@ function DetailPanel({ student }) {
       </div>
 
       {/* 7. Operation history */}
-      <div className="rounded-lg border border-gray-200 bg-white p-3 transition-shadow duration-150 hover:shadow-sm">
+      <div className="rounded-lg border border-gray-200 bg-white p-3.5 transition-shadow duration-150 ease-out hover:shadow-sm">
         <SectionLabel>운영 이력</SectionLabel>
         <div className="space-y-2">
           {student.timeline.map((t, i) => (
